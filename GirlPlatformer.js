@@ -5,6 +5,8 @@ var runStart = 1;
 var jumpStart = 1;
 size(1280, 720);
 var bg1 = loadImage("bg1.png");
+var keyZ = loadImage("keyZ_48px.png");
+var keySpace = loadImage("keySpace_48px.png");
 var idle = [];
 var idleUse;
 var runUse;
@@ -139,6 +141,7 @@ var draw = function() {
     }
     else{
       image(walkUse, player.xpos,player.ypos,player.size,player.size);
+      player.xpos += player.speed;
     }
     
   }
@@ -222,6 +225,10 @@ var draw = function() {
     }
     player.xpos = 350;
   }
+  
+  
+  
+  UI();
 };
 
 
@@ -294,5 +301,9 @@ var jumping = function(){
 }
 
 var UI = function(){
-  
+  textSize(24);
+  image(keyZ, 30, 20, 48, 48);
+  text("= Run", 90, 50);
+  image(keySpace, 30, 80, 48, 48);
+  text("= Jump", 90, 110);
 };
