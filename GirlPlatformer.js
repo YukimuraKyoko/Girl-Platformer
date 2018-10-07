@@ -16,6 +16,7 @@ var animation;
 var walk = [];
 var run = [];
 var jump =[];
+var jumpLimit = 20;
 var i = 1;
 var w = 1;
 var j = 1;
@@ -136,11 +137,16 @@ var draw = function() {
   if(right){
     
     if(running){
-      image(runUse, player.xpos,player.ypos,player.size,player.size);
+      runRightAnimation();
       player.xpos += player.speed*2;
     }
     else{
-      image(walkUse, player.xpos,player.ypos,player.size,player.size);
+      if(jumpu || player.ypos != 560){
+        jumpRightAnimation();
+      }
+      else{
+        walkRightAnimation();
+      }
       player.xpos += player.speed;
     }
     
@@ -148,22 +154,17 @@ var draw = function() {
   
   else if(left){
     
-   
-    
     if(running){
-      pushMatrix();
-    translate(player.xpos, player.ypos)
-    scale(-1.0, 1.0);
-    image(runUse, - walkUse.width + 300,0,player.size,player.size);
-    popMatrix();
+      runLeftAnimation();
       player.xpos -= player.speed*2;
     }
     else{
-       pushMatrix();
-    translate(player.xpos, player.ypos)
-    scale(-1.0, 1.0);
-    image(walkUse, - walkUse.width + 300,0,player.size,player.size);
-    popMatrix();
+      if(jumpu || player.ypos != 560){
+        jumpLeftAnimation();
+      } 
+      else{
+        walkLeftAnimation();
+      }
       player.xpos -= player.speed;
     }
   }
@@ -171,13 +172,13 @@ var draw = function() {
   else if(dirL) {
     
     pushMatrix();
-    translate(player.xpos, player.ypos)
+    translate(player.xpos, player.ypos);
     scale(-1.0, 1.0);
-        if(jumpu && player.xpos != 560){
-          image(jumpUse, - idleUse.width + 300,0,player.size,player.size);
+        if(jumpu || player.ypos != 560){
+          image(jumpUse, - jumpUse.width + 300,0,player.size,player.size);
         } 
         else if(running && left){
-          image(runUse, - idleUse.width + 300,0,player.size,player.size);
+          image(runUse, - runUse.width + 300,0,player.size,player.size);
         }
         else {
         image(idleUse, - idleUse.width + 300,0,player.size,player.size);
@@ -188,7 +189,7 @@ var draw = function() {
   
   
   else if (dirR) {
-    if(jumpu && player.xpos != 560){
+    if(jumpu || player.ypos != 560){
       image(jumpUse, player.xpos,player.ypos,player.size,player.size);
     } 
     else if(running && right){
@@ -201,10 +202,7 @@ var draw = function() {
   
   
  
-  //Floor
-  if (player.ypos > 560){
-    player.ypos = 560;
-  }
+ 
   
   //BG Scrolling
   if (player. xpos > 800){
@@ -259,7 +257,9 @@ var keyPressed = function(){
   if(keyCode === 90){
     running = true;
   }
-}
+};
+
+
 
 var keyReleased = function(){
   if(keyCode === RIGHT){
@@ -282,23 +282,36 @@ var keyReleased = function(){
   if(keyCode === 90){
     running = false;
   }
-}
+};
 
 
 var jumping = function(){
   
   if(jumpu){
-    
-    player.ypos -= 20;
+    if(gravity > -jumpLimit){
+    gravity -=10;   
+    }
+  }
+  else if(player.ypos == 560){
+    gravity = 0;
   }
   else {
-    player.ypos += 20;
+    gravity +=5;
   }
   
- player.ypos += gravity
+ player.ypos += gravity;
   
+  //Floor
+  if (player.ypos > 560){
+    player.ypos = 560;
+  }
+  
+  //Ceiling
+  if (player.ypos < 0){
+    player.ypos = 0;
+  }
  
-}
+};
 
 var UI = function(){
   textSize(24);
@@ -306,4 +319,53 @@ var UI = function(){
   text("= Run", 90, 50);
   image(keySpace, 30, 80, 48, 48);
   text("= Jump", 90, 110);
+  text("Gravity: " + gravity, 250,250);
+};
+
+var runRightAnimation = function(){
+  image(runUse, player.xpos,player.ypos,player.size,player.size);
+};
+
+var runLeftAnimation = function(){
+  pushMatrix();
+    translate(player.xpos, player.ypos);
+    scale(-1.0, 1.0
+    );
+    image(runUse, - walkUse.width + 300,0,player.size,player.size);
+    popMatrix();
+};
+
+var jumpRightAnimation = function(){
+  image(jumpUse, player.xpos,player.ypos,player.size,player.size);
+};
+
+var jumpLeftAnimation = function(){
+  pushMatrix();
+    translate(player.xpos, player.ypos);
+    scale(-1.0, 1.0);
+    image(jumpUse, - idleUse.width + 300,0,player.size,player.size);
+  popMatrix();
+    
+};
+
+var walkLeftAnimation = function(){
+  pushMatrix();
+    translate(player.xpos, player.ypos);
+    scale(-1.0, 1.0);
+    image(walkUse, - idleUse.width + 300,0,player.size,player.size);
+  popMatrix();
+};
+
+var walkRightAnimation = function(){
+  image(walkUse, player.xpos,player.ypos,player.size,player.size);
+};
+
+var idleLeftAnimation = function(){
+  
+    image(idleuse, - idleUse.width + 300,0,player.size,player.size);
+  
+};
+
+var idleRightAnimation = function(){
+  image(idleUse, player.xpos,player.ypos,player.size,player.size);
 };
