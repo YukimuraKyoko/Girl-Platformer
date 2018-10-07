@@ -16,10 +16,13 @@ var run = [];
 var jump =[];
 var i = 1;
 var w = 1;
-
+var j = 1;
+var r = 1;
+var gravity = 0;
+var scrolling = 0;
 
 var timer = 0;
-var left, right, up, down, jumpu, dirL = false;
+var left, right, up, down, jumpu, dirL, running = false;
 var dirR = true;
 
 var Screen = {
@@ -31,25 +34,43 @@ var setup = function(){
   frameRate(30);
 }
 
+//SPRITE IDLE ANIMATION ARRAY LOAD
 while(idleStart < 17){
     idle[idleStart] = loadImage("Idle_(" + idleStart + ").png");
     idleStart++;
 }
 
+//SPRITE WALK ANIMATION ARRAY LOAD
 while(walkStart < 21){
     walk[walkStart] = loadImage("Walk_(" + walkStart + ").png");
     walkStart++;
 }
 
+//SPRITE JUMP ANIMATION ARRAY LOAD
+while(jumpStart < 31){
+    jump[jumpStart] = loadImage("Jump_(" + jumpStart + ").png");
+    jumpStart++;
+}
+
+//SPRITE RUN ANIMATION ARRAY LOAD
+while(runStart < 21){
+    run[runStart] = loadImage("Run_(" + runStart + ").png");
+    runStart++;
+}
+
+
 var player = {
   xpos: 600,
-  ypos: 580,
-  size: 100
+  ypos: 560,
+  size: 100,
+  speed: 10,
 };
 
 var drawPlayer = function(){
   
-  idleUse = idle[i];
+
+//IDLE ANIMATION LOOP
+ idleUse = idle[i];
 
  if(i < idle.length){
    i++;
@@ -58,6 +79,7 @@ var drawPlayer = function(){
    i = 1;
  }
  
+//WALK ANIMATION LOOP
  walkUse = walk[w];
 
  if(w < walk.length){
@@ -66,6 +88,26 @@ var drawPlayer = function(){
  if(w >= 19){
    w = 1;
  }
+ 
+//JUMP ANIMATION LOOP
+ jumpUse = jump[j];
+
+ if(j < jump.length){
+   j++;
+ } 
+ if(j >= 19){
+   j = 1;
+ }
+ 
+//RUN ANIMATION LOOP
+runUse = run[r];
+
+if(r < run.length){
+ r++;
+} 
+if(r >= 19){
+ r = 1;
+}
 
 
 }
@@ -77,28 +119,50 @@ var drawPlayer = function(){
 var draw = function() {
   animation = idleUse;
   timer++;
-  image(bg1,0,0,Screen.x,Screen.y);
+  image(bg1,0+scrolling,0,Screen.x,Screen.y);
+  image(bg1,Screen.x+scrolling,0,Screen.x,Screen.y);
+  image(bg1,-Screen.x+scrolling,0,Screen.x,Screen.y);
+  image(bg1,(2*Screen.x)+scrolling,0,Screen.x,Screen.y);
+  image(bg1,-(2*Screen.x)+scrolling,0,Screen.x,Screen.y);
+  
   
   drawPlayer();
   
-  
+  jumping();
   
     
   if(right){
-    image(walkUse, player.xpos,player.ypos,player.size,player.size);
-    player.xpos += 10;
+    
+    if(running){
+      image(runUse, player.xpos,player.ypos,player.size,player.size);
+      player.xpos += player.speed*2;
+    }
+    else{
+      image(walkUse, player.xpos,player.ypos,player.size,player.size);
+    }
+    
   }
   
   else if(left){
     
-    pushMatrix();
+   
+    
+    if(running){
+      pushMatrix();
+    translate(player.xpos, player.ypos)
+    scale(-1.0, 1.0);
+    image(runUse, - walkUse.width + 300,0,player.size,player.size);
+    popMatrix();
+      player.xpos -= player.speed*2;
+    }
+    else{
+       pushMatrix();
     translate(player.xpos, player.ypos)
     scale(-1.0, 1.0);
     image(walkUse, - walkUse.width + 300,0,player.size,player.size);
     popMatrix();
-    
-    player.xpos -= 10;  
-    
+      player.xpos -= player.speed;
+    }
   }
   
   else if(dirL) {
@@ -106,20 +170,57 @@ var draw = function() {
     pushMatrix();
     translate(player.xpos, player.ypos)
     scale(-1.0, 1.0);
-    image(idleUse, - idleUse.width + 300,0,player.size,player.size);
+        if(jumpu && player.xpos != 560){
+          image(jumpUse, - idleUse.width + 300,0,player.size,player.size);
+        } 
+        else if(running && left){
+          image(runUse, - idleUse.width + 300,0,player.size,player.size);
+        }
+        else {
+        image(idleUse, - idleUse.width + 300,0,player.size,player.size);
+        }
     popMatrix();
     
   } 
   
+  
   else if (dirR) {
-    image(idleUse, player.xpos,player.ypos,player.size,player.size);
+    if(jumpu && player.xpos != 560){
+      image(jumpUse, player.xpos,player.ypos,player.size,player.size);
+    } 
+    else if(running && right){
+      image(runUse, player.xpos,player.ypos,player.size,player.size);
+    }
+    else {
+      image(idleUse, player.xpos,player.ypos,player.size,player.size);
+    }
   }
   
+  
  
- 
-
-  if (player.ypos > 580){
-    player.ypos = 580;
+  //Floor
+  if (player.ypos > 560){
+    player.ypos = 560;
+  }
+  
+  //BG Scrolling
+  if (player. xpos > 800){
+    if(running){
+      scrolling -= player.speed*2;
+    }
+    else{
+      scrolling -= player.speed;
+    }
+    player.xpos = 800;
+  }
+  if (player.xpos < 350){
+    if(running){
+      scrolling += player.speed*2;
+    }
+    else{
+      scrolling += player.speed;
+    }
+    player.xpos = 350;
   }
 };
 
@@ -147,6 +248,10 @@ var keyPressed = function(){
   if(keyCode === 32 ){
     jumpu = true;
   }
+  //Z Key
+  if(keyCode === 90){
+    running = true;
+  }
 }
 
 var keyReleased = function(){
@@ -166,4 +271,28 @@ var keyReleased = function(){
   if(keyCode === 32){
     jumpu = false;
   }
+  //Z Key
+  if(keyCode === 90){
+    running = false;
+  }
 }
+
+
+var jumping = function(){
+  
+  if(jumpu){
+    
+    player.ypos -= 20;
+  }
+  else {
+    player.ypos += 20;
+  }
+  
+ player.ypos += gravity
+  
+ 
+}
+
+var UI = function(){
+  
+};
