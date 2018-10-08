@@ -1,5 +1,5 @@
 //Floor pixel limit: 560
-
+var Floor = 560;
 //-------------------------Variables/Setup---------------------------
 var idleStart = 1;
 var walkStart = 1;
@@ -25,6 +25,7 @@ var j = 1;
 var r = 1;
 var gravity = 0;
 var scrolling = 0;
+var onPlat = false;
 
 var timer = 0;
 var left, right, up, down, jumpu, dirL, running = false;
@@ -84,18 +85,21 @@ var draw = function() {
   timer++;
   
   drawBG();
-  
+  smooth();
   //noFill();
   strokeWeight(5);
-  rect(boxes[0].xpos+(scrolling*1.2),boxes[0].ypos,boxes[0].width,boxes[0].height);
+  rect(boxes[0].xpos+(scrolling),boxes[0].ypos,boxes[0].width,boxes[0].height);
   
   drawPlayer(); 
   
   jumping();
   
   if(rectCollision(player,boxes[0]) && gravity > 0){
-    text("touching", 1000,500)
-    player.ypos -= gravity;
+    textSize(50);
+    text("touching", 1000,300)
+    player.ypos = boxes[0].ypos- 100;
+    gravity = 0;
+    onPlat = true;
   }
   
  playerAnimationController();
@@ -167,7 +171,7 @@ var jumping = function(){
     gravity -=10;   
     }
   }
-  else if(player.ypos == 560){
+  else if(player.ypos == Floor){
     gravity = 0;
   }
   else {
@@ -177,12 +181,14 @@ var jumping = function(){
       gravity += 1;
     }
   }
-  
- player.ypos += gravity;
+
+  if(!rectCollision(player,boxes[0])){
+    player.ypos += gravity;
+  }
   
   //Floor
-  if (player.ypos > 560){
-    player.ypos = 560;
+  if (player.ypos > Floor){
+    player.ypos = Floor;
   }
   
   //Ceiling
@@ -329,7 +335,7 @@ var playerAnimationController = function(){
   if(right){
     
     if(running){
-      if(jumpu || player.ypos != 560){
+      if(jumpu || player.ypos != Floor){
         jumpRightAnimation();
       } else {
         runRightAnimation();
@@ -338,7 +344,7 @@ var playerAnimationController = function(){
       player.xpos += player.speed*2;
     }
     else{
-      if(jumpu || player.ypos != 560){
+      if(jumpu || player.ypos != Floor){
         jumpRightAnimation();
       }
       else{
@@ -352,7 +358,7 @@ var playerAnimationController = function(){
   else if(left){
     
     if(running){
-      if(jumpu || player.ypos != 560){
+      if(jumpu || player.ypos != Floor){
         jumpLeftAnimation();
       } else {
       runLeftAnimation();
@@ -360,7 +366,7 @@ var playerAnimationController = function(){
       player.xpos -= player.speed*2;
     }
     else{
-      if(jumpu || player.ypos != 560){
+      if(jumpu || player.ypos != Floor){
         jumpLeftAnimation();
       } 
       else{
@@ -375,8 +381,13 @@ var playerAnimationController = function(){
     pushMatrix();
     translate(player.xpos, player.ypos);
     scale(-1.0, 1.0);
-        if(jumpu || player.ypos != 560){
+        if(jumpu || player.ypos != Floor){
+          if(onPlat){
+            image(idleUse, - idleUse.width + 300,0,player.size,player.size);
+          }
+          else{
           image(jumpUse, - jumpUse.width + 300,0,player.size,player.size);
+          }
         } 
         else if(running && left){
           image(runUse, - runUse.width + 300,0,player.size,player.size);
@@ -390,8 +401,12 @@ var playerAnimationController = function(){
   
   
   else if (dirR) {
-    if(jumpu || player.ypos != 560){
+    if(jumpu || player.ypos != Floor){
+      if(onPlat){
+        image(idleUse, player.xpos,player.ypos,player.size,player.size);
+      } else{
       image(jumpUse, player.xpos,player.ypos,player.size,player.size);
+      }
     } 
     else if(running && right){
       image(runUse, player.xpos,player.ypos,player.size,player.size);
