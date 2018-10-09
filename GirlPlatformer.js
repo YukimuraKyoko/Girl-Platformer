@@ -25,8 +25,8 @@ var j = 1;
 var r = 1;
 var gravity = 0;
 var scrolling = 0;
-var onPlat = false;
-
+var onPlat, canJump = false;
+var canJump = true;
 var timer = 0;
 var left, right, up, down, jumpu, dirL, running = false;
 var dirR = true;
@@ -42,7 +42,7 @@ var setup = function(){
 
 var player = {
   xpos: 600,
-  ypos: 560,
+  ypos: Floor,
   width: 100,
   height: 100,
   size: 100,
@@ -50,7 +50,7 @@ var player = {
 };
 
 
-var boxes = [{xpos: 500, ypos: 500, width:50, height: 5}];
+var boxes = [{xpos: 500, ypos: 500, width:200, height: 5}];
 
 //-----------------------------Initial Loading---------------------------
 
@@ -95,11 +95,21 @@ var draw = function() {
   jumping();
   
   if(rectCollision(player,boxes[0]) && gravity > 0){
-    textSize(50);
-    text("touching", 1000,300)
-    player.ypos = boxes[0].ypos- 100;
+    textSize(24);
+    text("touching platform", 900,100)
+    
+      //if player is under platform, knock player down
+      
+      //else player stays above platform
+        player.ypos = boxes[0].ypos- 100;
+      
+      
+    
     gravity = 0;
     onPlat = true;
+  }
+  else{
+    onPlat = false;
   }
   
  playerAnimationController();
@@ -112,28 +122,30 @@ var draw = function() {
 //-----------------------------Functions---------------------------
 
 var keyPressed = function(){
-  if(keyCode === RIGHT){
+  if(keyCode === RIGHT || keyCode === 68){
     right = true;
     dirR = true;
     dirL = false;
   }
-  if(keyCode === LEFT){
+  if(keyCode === LEFT || keyCode === 65){
     left = true;
     dirL = true;
     dirR = false;
   }
-  if(keyCode === UP){
+  if(keyCode === UP || keyCode === 87){
     up = true;
   }
-  if(keyCode === DOWN){
+  if(keyCode === DOWN || keyCode ===83){
     down = true;
   }
   //SpaceKey
-  if(keyCode === 32 ){
-    jumpu = true;
+  if(canJump){
+    if(keyCode === 32 ){
+      jumpu = true;
+    }
   }
   //Z Key
-  if(keyCode === 90){
+  if(keyCode === 90 || keyCode === 16){
     running = true;
   }
 };
@@ -141,16 +153,16 @@ var keyPressed = function(){
 
 
 var keyReleased = function(){
-  if(keyCode === RIGHT){
+  if(keyCode === RIGHT || keyCode === 68){
     right = false;
   }
-  if(keyCode === LEFT){
+  if(keyCode === LEFT || keyCode === 65){
     left = false;
   }
-  if(keyCode === UP){
+  if(keyCode === UP || keyCode === 87){
     up = false;
   }
-  if(keyCode === DOWN){
+  if(keyCode === DOWN || keyCode ===83){
     down = false;
   }
   //SpaceKey
@@ -158,7 +170,7 @@ var keyReleased = function(){
     jumpu = false;
   }
   //Z Key
-  if(keyCode === 90){
+  if(keyCode === 90 || keyCode === 16){
     running = false;
   }
 };
@@ -196,6 +208,19 @@ var jumping = function(){
     player.ypos = 0;
   }
  
+  //Disables pressing jump in midair
+  if (player.ypos === Floor){
+    canJump = true;
+  }
+  else if (onPlat){
+    canJump = true;
+  }
+  else {
+    canJump = false;
+  }
+  
+  //Maximum Jump Height
+ 
 };
 
 var UI = function(){
@@ -204,7 +229,8 @@ var UI = function(){
   text("= Run", 90, 50);
   image(keySpace, 30, 80, 48, 48);
   text("= Jump", 90, 110);
-  text("Gravity: " + gravity, 250,250);
+  text("Gravity: " + gravity, 250,100);
+  text("canJump: " + canJump, 600, 100);
 };
 
 var runRightAnimation = function(){
@@ -345,7 +371,11 @@ var playerAnimationController = function(){
     }
     else{
       if(jumpu || player.ypos != Floor){
-        jumpRightAnimation();
+        if(onPlat){
+          walkRightAnimation();
+        } else {
+          jumpRightAnimation();
+        }
       }
       else{
         walkRightAnimation();
@@ -359,7 +389,7 @@ var playerAnimationController = function(){
     
     if(running){
       if(jumpu || player.ypos != Floor){
-        jumpLeftAnimation();
+          jumpLeftAnimation();
       } else {
       runLeftAnimation();
       }
@@ -367,7 +397,11 @@ var playerAnimationController = function(){
     }
     else{
       if(jumpu || player.ypos != Floor){
-        jumpLeftAnimation();
+        if(onPlat){
+          walkLeftAnimation();
+        } else {
+          jumpLeftAnimation();
+        }
       } 
       else{
         walkLeftAnimation();
